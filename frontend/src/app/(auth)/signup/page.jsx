@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,23 +7,17 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link'; 
 import { useRouter } from 'next/navigation'; 
 
-interface FormData {
-  name: string;
-  email: string;
-  password: string;
-}
-
-const SignUp: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+const SignUp = () => {
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter(); 
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -31,7 +25,7 @@ const SignUp: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage(null);
@@ -73,12 +67,8 @@ const SignUp: React.FC = () => {
       } else {
         setErrorMessage(message || 'An unexpected error occurred.');
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrorMessage(err.message || 'An unexpected error occurred.');
-      } else {
-        setErrorMessage('An unexpected error occurred.');
-      }
+    } catch (err) {
+      setErrorMessage(err.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }

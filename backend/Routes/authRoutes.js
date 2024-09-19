@@ -1,9 +1,10 @@
 const express = require('express');
-const {SignUpValidation} = require('../Middlewares/AuthValidation')
-const {signup} = require('../Controllers/AuthController')
+const { SignUpValidation, signInValidation } = require('../Middlewares/AuthValidation');
+const { signup, signIn} = require('../Controllers/AuthController');
 
-const router = express.Router(); // Corrected
+const router = express.Router();
 
-router.post('/signUp',SignUpValidation, signup);
+router.post('/signUp', SignUpValidation, signup);
+router.post('/signIn', signInValidation, signIn);
 
-module.exports = router; 
+module.exports = router;

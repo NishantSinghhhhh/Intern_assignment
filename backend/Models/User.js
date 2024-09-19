@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const {db1} = require('./db')
 
-const userSchema = new Schema({
+const UserSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -27,4 +28,5 @@ const userSchema = new Schema({
   timestamps: true 
 });
 
-module.exports = mongoose.model('User', userSchema);
+const User = db1.model('User', UserSchema);
+module.exports = {User};
