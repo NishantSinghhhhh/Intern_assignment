@@ -1,5 +1,6 @@
 import { Open_Sans, Fira_Mono } from "next/font/google";
 import "./globals.css";
+import { UserProvider } from '@/context/UserContext'; // Import the UserProvider
 
 // Import Open Sans and Fira Mono from Google Fonts
 const openSans = Open_Sans({
@@ -22,10 +23,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${openSans.variable} ${firaMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${openSans.variable} ${firaMono.variable} antialiased`}>
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );

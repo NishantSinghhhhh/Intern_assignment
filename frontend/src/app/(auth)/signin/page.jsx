@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify'; // Ensure this import is correct
+import { useUser } from '@/context/UserContext'; // Import useUser hook
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
+  const { updateUser } = useUser(); // Use the setUser function from context
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,7 +37,6 @@ const SignIn = () => {
         throw new Error(result.message || 'An unexpected error occurred');
       }
 
-      // Check if result is defined and contains expected properties
       if (result && typeof result === 'object') {
         const { success, message, jwtToken, name, error } = result;
 
@@ -43,6 +44,9 @@ const SignIn = () => {
           localStorage.setItem('token', jwtToken);
           localStorage.setItem('loggedInUser', name);
           localStorage.setItem('loginInfo', JSON.stringify({ email, registrationNumber: '', isStudent: true }));
+
+          // Update user context
+          updateUser({ email, name, token: jwtToken });
 
           // Show success toast
           toast.success("Login successful!");
@@ -62,7 +66,6 @@ const SignIn = () => {
       }
     } catch (err) {
       console.error('Error during sign-in:', err);
-      // Ensure err is an object and has message property
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       toast.error(errorMessage);
       setErrorMessage(errorMessage);

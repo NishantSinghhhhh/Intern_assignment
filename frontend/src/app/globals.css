@@ -1,13 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-*{
-  margin: 0;
-  padding: 0;
-  background-color: black;
-}
+
 :root {
-  --background: #ffffff;
+  --background: #000000;
   --foreground: #171717;
 }
 

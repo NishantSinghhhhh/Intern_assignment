@@ -4,8 +4,9 @@ import Navbar from '../../elements/Navbar'
 const Page = () => {
   return (
     <div className="bg-black h-screen">
-      <div className="top-5">
+      <div className='mt-[30px]'>
         <Navbar/>
+      
       </div>
     </div>
   );
