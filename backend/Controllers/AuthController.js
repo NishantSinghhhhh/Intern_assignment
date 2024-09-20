@@ -4,25 +4,65 @@ const {User} = require('../Models/User'); // Adjust path as necessary
 const { Todo } = require("../Models/Task");
 const mongoose = require('mongoose');
 
-// Inside AuthController.js
+const deleteTodo = async (req, res) => {
+  const todoData = req.body; // Get the todo data from request body
+  const { _id } = todoData; // Extract the _id from the data
 
-const updateTodo = async (req, res) => {
-  const { id } = req.params; // Get todo ID from the request parameters
-  const updatedData = req.body; // Get updated data from the request body
+  console.log('Received request to delete Todo with data:', todoData);
 
   try {
-    // Assuming you have a Todo model and a method to find and update a todo
-    const updatedTodo = await Todo.findByIdAndUpdate(id, updatedData, { new: true });
+    // Validate the ObjectId
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      console.error('Invalid todo ID format:', _id);
+      return res.status(400).json({ message: 'Invalid todo ID' });
+    }
 
-    if (!updatedTodo) {
+    console.log('Valid Todo ID format. Proceeding to find and delete...');
+
+    // Find and delete the todo
+    const deletedTodo = await Todo.findByIdAndDelete(_id);
+
+    if (!deletedTodo) {
+      console.error('Todo not found for ID:', _id);
       return res.status(404).json({ message: 'Todo not found' });
     }
 
+    console.log('Todo deleted successfully:', deletedTodo);
+    res.status(200).json({ message: 'Todo deleted successfully', todo: deletedTodo });
+  } catch (error) {
+    console.error('Error deleting todo:', error.message);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ message: 'Error deleting todo', error: error.message });
+  }
+};
+
+
+const updateTodo = async (req, res) => {
+  const updatedData = req.body;
+
+  console.log('Updating Todo:', { updatedData });
+
+  try {
+    // Use _id to find and update the todo in the database
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      updatedData._id, // Use the _id from the updatedData
+      updatedData,
+      { new: true }
+    );
+
+    if (!updatedTodo) {
+      console.log('Todo not found for ID:', updatedData._id);
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    console.log('Todo updated successfully:', updatedTodo);
     res.status(200).json({ message: 'Todo updated successfully', todo: updatedTodo });
   } catch (error) {
+    console.error('Error updating todo:', error);
     res.status(500).json({ message: 'Error updating todo', error: error.message });
   }
 };
+
 
 
 const fetchTasksByUserId = async (req, res) => {
@@ -228,4 +268,4 @@ const signup = async (req, res) => {
     }
 };
 
-module.exports = { signup, signIn, addTodo, fetchTasksByUserId, updateTodo};
+module.exports = { signup, signIn, addTodo, fetchTasksByUserId, updateTodo, deleteTodo};

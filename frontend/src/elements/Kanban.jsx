@@ -1,8 +1,5 @@
-'use client';
-
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Navbar from '@/elements/Navbar'; // Assuming Navbar is imported correctly
 
 const initialTasks = {
   todo: [
@@ -22,25 +19,20 @@ const Kanban = () => {
   const [tasks, setTasks] = useState(initialTasks);
 
   const onDragEnd = (result) => {
-    const { source, destination, draggableId } = result;
+    const { source, destination } = result;
 
     if (!destination) return; // If dropped outside the droppable area
 
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
       return; // If the task is dropped in the same position
     }
 
     // Moving task within the same list or between different lists
-    const sourceList = Array.from(tasks[source.droppableId]);
-    const destinationList = Array.from(tasks[destination.droppableId]);
+    const sourceList = tasks[source.droppableId];
+    const destinationList = tasks[destination.droppableId];
 
-    const sourceTaskIndex = sourceList.findIndex((task) => task.id === draggableId);
-    const [removedTask] = sourceList.splice(sourceTaskIndex, 1); // Remove task from source
-
-    destinationList.splice(destination.index, 0, removedTask); // Add task to the destination
+    const [movedTask] = sourceList.splice(source.index, 1); // Remove task from source
+    destinationList.splice(destination.index, 0, movedTask); // Add task to the destination
 
     setTasks({
       ...tasks,
@@ -71,12 +63,8 @@ const Kanban = () => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="bg-black/50 text-white p-4 mb-4 rounded-lg shadow-md border border-blue-500/30 cursor-grab"
-                          style={{ ...provided.draggableProps.style, userSelect: 'none' }}
+                          className="bg-black/50 text-white p-4 mb-4 rounded-lg shadow-md border border-blue-500/30"
                         >
-                          <span className="cursor-grab hover:text-blue-300 transition duration-300 ease-in-out text-lg mr-2">
-                            &#x2693; {/* Drag handle icon */}
-                          </span>
                           {task.content}
                         </div>
                       )}
@@ -93,17 +81,4 @@ const Kanban = () => {
   );
 };
 
-const Page = () => {
-  return (
-    <div className="bg-black min-h-screen w-full">
-      <div>
-        <Navbar />
-      </div>
-      <div>
-        <Kanban />
-      </div>
-    </div>
-  );
-};
-
-export default Page;
+export default Kanban;
