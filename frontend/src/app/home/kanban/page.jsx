@@ -1,94 +1,138 @@
 'use client';
 
-import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Navbar from '@/elements/Navbar'; // Assuming Navbar is imported correctly
-
-const initialTasks = {
-  todo: [
-    { id: '1', content: 'Task 1' },
-    { id: '2', content: 'Task 2' },
-    { id: '3', content: 'Task 3' },
-  ],
-  inProgress: [
-    { id: '4', content: 'Task 4' },
-  ],
-  done: [
-    { id: '5', content: 'Task 5' },
-  ],
-};
+import React, { useEffect, useState } from 'react';
+import Draggable from 'react-draggable';
+import Navbar from '@/elements/Navbar'; // Adjust the import path as needed
+import { useUser } from '@/context/UserContext'; // Adjust the import path as needed
+import { Clock, AlertTriangle } from 'lucide-react'; // Import your icons here
 
 const Kanban = () => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const { user } = useUser();
+  const [tasks, setTasks] = useState({
+    todo: [],
+    inProgress: [],
+    done: [],
+  });
 
-  const onDragEnd = (result) => {
-    const { source, destination, draggableId } = result;
+  // Function to create random tasks for demo purposes
+  const createRandomTask = (status) => ({
+    id: Math.random().toString(36).substr(2, 9),
+    title: `Task ${Math.floor(Math.random() * 100)}`,
+    description: 'This is a random task description.',
+    status,
+  });
 
-    if (!destination) return; // If dropped outside the droppable area
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        console.log('Fetching tasks for user ID:', user.id);
+        const response = await fetch(`http://localhost:8000/auth/fetchtasks/${user.id}`);
+        const data = await response.json();
 
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return; // If the task is dropped in the same position
+        if (response.ok) {
+          console.log('Fetched tasks:', data);
+          const organizedTasks = {
+            todo: [],
+            inProgress: [],
+            done: [],
+          };
+
+          data.tasks.forEach((task) => {
+            if (task.status === 'To Do') {
+              organizedTasks.todo.push(task);
+            } else if (task.status === 'In Progress') {
+              organizedTasks.inProgress.push(task);
+            } else if (task.status === 'Done') {
+              organizedTasks.done.push(task);
+            }
+          });
+
+          setTasks(organizedTasks);
+        } else {
+          console.error('Error fetching tasks:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+
+    if (user.id) {
+      fetchTasks();
+    } else {
+      // Create random tasks for demo if no user ID
+      setTasks({
+        todo: [createRandomTask('To Do'), createRandomTask('To Do')],
+        inProgress: [createRandomTask('In Progress')],
+        done: [createRandomTask('Done')],
+      });
     }
+  }, [user.id]);
 
-    // Moving task within the same list or between different lists
-    const sourceList = Array.from(tasks[source.droppableId]);
-    const destinationList = Array.from(tasks[destination.droppableId]);
-
-    const sourceTaskIndex = sourceList.findIndex((task) => task.id === draggableId);
-    const [removedTask] = sourceList.splice(sourceTaskIndex, 1); // Remove task from source
-
-    destinationList.splice(destination.index, 0, removedTask); // Add task to the destination
-
-    setTasks({
-      ...tasks,
-      [source.droppableId]: sourceList,
-      [destination.droppableId]: destinationList,
+  const handleDrag = (taskId, newStatus) => {
+    setTasks((prevTasks) => {
+      const newTasks = { ...prevTasks };
+      const task = Object.values(newTasks).flat().find((t) => t.id === taskId);
+      if (task) {
+        newTasks[task.status.toLowerCase()].splice(newTasks[task.status.toLowerCase()].indexOf(task), 1);
+        task.status = newStatus;
+        newTasks[newStatus.toLowerCase()].push(task);
+      }
+      return newTasks;
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-black p-4">
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex justify-around">
-          {Object.keys(tasks).map((columnKey) => (
-            <Droppable droppableId={columnKey} key={columnKey}>
-              {(provided) => (
-                <div
-                  className="w-1/3 p-4 bg-black/30 backdrop-filter backdrop-blur-lg rounded-lg border border-blue-500/20 shadow-xl"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h2 className="text-xl text-white font-bold capitalize mb-4">
-                    {columnKey.replace(/([A-Z])/g, ' $1')}
-                  </h2>
-                  {tasks[columnKey].map((task, index) => (
-                    <Draggable key={task.id} draggableId={task.id} index={index}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="bg-black/50 text-white p-4 mb-4 rounded-lg shadow-md border border-blue-500/30 cursor-grab"
-                          style={{ ...provided.draggableProps.style, userSelect: 'none' }}
-                        >
-                          <span className="cursor-grab hover:text-blue-300 transition duration-300 ease-in-out text-lg mr-2">
-                            &#x2693; {/* Drag handle icon */}
-                          </span>
-                          {task.content}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+    <div className="flex gap-6 p-6 overflow-x-auto">
+      {Object.keys(tasks).map((status) => (
+        <div key={status} className="bg-gray-800 rounded-lg shadow-lg p-4 w-1/4 min-w-[250px]">
+          <h2 className="text-white text-lg font-bold mb-4 capitalize">{status}</h2>
+          {tasks[status].map((task) => (
+            <Draggable
+              key={task.id}
+              onStop={(e, data) => {
+                const newStatus = data.x > 200 ? (status === 'todo' ? 'In Progress' : 'Done') : 'To Do'; // Change status logic
+                handleDrag(task.id, newStatus);
+              }}
+            >
+              <div
+                className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition duration-300 hover:bg-black/50 mb-4 cursor-pointer"
+                onClick={() => console.log(task)}
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
+                  <h4 className="text-2xl font-bold text-white mb-2 sm:mb-0">{task.title}</h4>
+              
                 </div>
-              )}
-            </Droppable>
+                <p className="text-gray-300 mb-6">{task.description}</p>
+                <div className="flex flex-wrap gap-6">
+                  <div className="flex items-center text-gray-300">
+                    <div className={`w-3 h-3 rounded-full mr-2 ${
+                      task.status === 'Completed' ? 'bg-green-500' :
+                      task.status === 'In Progress' ? 'bg-yellow-500' : 'bg-red-500'
+                    }`} />
+                    <span>{task.status}</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Clock size={18} className="mr-2" />
+                    <span>
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
+                        : 'No due date'}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <AlertTriangle size={18} className="mr-2" />
+                    <span>{task.priority}</span>
+                  </div>
+                </div>
+              </div>
+            </Draggable>
           ))}
         </div>
-      </DragDropContext>
+      ))}
     </div>
   );
 };
@@ -96,12 +140,8 @@ const Kanban = () => {
 const Page = () => {
   return (
     <div className="bg-black min-h-screen w-full">
-      <div>
-        <Navbar />
-      </div>
-      <div>
-        <Kanban />
-      </div>
+      <Navbar />
+      <Kanban />
     </div>
   );
 };
