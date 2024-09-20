@@ -1,11 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../../elements/Navbar';
 import { Edit2, Trash2, Clock, AlertTriangle } from 'lucide-react';
 import { useUser } from '@/context/UserContext'; // Import useUser hook
-
 const Task = () => {
-  const { user } = useUser(); // Get user details from context
+  const { user } = useUser();
   const [tasks, setTasks] = useState([]);
   const [task, setTask] = useState({
     id: null,
@@ -15,56 +14,112 @@ const Task = () => {
     priority: 'Low',
     dueDate: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false); // New state for edit mode
+
+  // Fetch user tasks on component mount
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!user || !user.id) return;
+
+      try {
+        const response = await fetch(`http://localhost:8000/auth/fetchtasks/${user.id}`);
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'An unexpected error occurred');
+        }
+
+        setTasks(result.tasks);
+      } catch (err) {
+        setErrorMessage(err.message || 'Failed to fetch tasks');
+      }
+    };
+
+    fetchTasks();
+  }, [user]);
+
+
 
   const handleChange = (e) => {
     setTask({ ...task, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (task.title.trim() === '') return;
 
-    if (task.id) {
-      // Editing an existing task
-      setTasks(tasks.map(t => t.id === task.id ? task : t));
-    } else {
-      // Adding a new task
-      setTasks([...tasks, { ...task, id: Date.now().toString() }]);
+    setLoading(true);
+    setErrorMessage(null);
+
+    if (!user || !user.id) {
+      setErrorMessage('User ID is required to add a task.');
+      setLoading(false);
+      return;
     }
-    
-    // Reset form
-    setTask({ id: null, title: '', description: '', status: 'To Do', priority: 'Low', dueDate: '' });
+
+    try {
+      const response = await fetch('http://localhost:8000/auth/task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...task, userId: user.id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'An unexpected error occurred');
+      }
+
+      if (task.id) {
+        onTaskUpdate(task);
+      } else {
+        setTasks([...tasks, { ...task, id: Date.now().toString() }]);
+      }
+
+      setTask({ id: null, title: '', description: '', status: 'To Do', priority: 'Low', dueDate: '' });
+      setIsEditing(false); // Reset edit mode
+    } catch (err) {
+      setErrorMessage(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleUpdate = async () => {
+    console.log('Task clicked:', taskToEdit); // Log all task details here
+    setTask(taskToEdit);
+    setIsEditing(true); // Set edit mode to true
+  };
+
+  
   const handleEdit = (taskToEdit) => {
     setTask(taskToEdit);
+    setIsEditing(true); // Set edit mode to true
   };
 
   const handleDelete = (id) => {
     setTasks(tasks.filter(task => task.id !== id));
   };
 
+
   return (
     <>
-      {/* Background image or color on the left */}
       <div className='flex w-[80%] mx-auto'>
-        <div
-          className="task-background w-1/2 bg-cover bg-no-repeat p-8 text-center text-white font-semibold text-lg shadow-lg rounded-lg relative overflow-hidden flex justify-center items-center"
-        >
+        <div className="task-background w-1/2 bg-cover bg-no-repeat p-8 text-center text-white font-semibold text-lg shadow-lg rounded-lg relative overflow-hidden flex justify-center items-center">
           <div className="relative z-10">
             <h2 className="task-title text-7xl text-left font-bold mb-4">Effective Task Management</h2>
             <p className="task-description text-left text-lg">Prioritize and set deadlines for optimal results.</p>
           </div>
         </div>
 
-        {/* Task form and list on the right */}
         <div className="task-wrapper mr-[20px] w-[40%] h-[65%] bg-gray-800/40 backdrop-blur-lg rounded-lg p-6 shadow-lg">
           <h2 className="task-title text-3xl font-bold mb-6 text-white">Task Management</h2>
 
-          {/* Display user details */}
           <div className="mb-6 text-white">
             <h3 className="text-xl font-semibold">Welcome, {user?.name || 'User'}!</h3>
-            <p className="text-gray-300">Your email: {user?.email || 'Not available'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="task-form space-y-4">
@@ -128,9 +183,26 @@ const Task = () => {
                 className="w-full p-2 rounded-lg bg-gray-900 text-white outline-none"
               />
             </div>
-            <button type="submit" className="task-submit w-full p-3 bg-green-600 rounded-lg text-white font-bold">
-              {task.id ? 'Update Task' : 'Add Task'}
-            </button>
+            <div className="flex justify-between">
+              {!isEditing &&(<button
+                type="submit"
+                className="task-submit w-full p-3 bg-green-600 rounded-lg text-white font-bold mr-2"
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : (isEditing ? 'Update Task' : 'Add Task')}
+              </button>)}
+              {isEditing && (
+              <button
+                type="button"
+                onClick={handleUpdate} // Use the new handleUpdate function
+                className="task-cancel w-full p-3 bg-green-600 rounded-lg text-white font-bold"
+              >
+                Update Task
+              </button>
+            )}
+            </div>
+
+            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           </form>
         </div>
       </div>
@@ -143,7 +215,8 @@ const Task = () => {
             {tasks.map((task) => (
               <div 
                 key={task.id} 
-                className="task-item bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg p-6 rounded-lg border border-gray-700 shadow-lg"
+                className="task-item bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg p-6 rounded-lg border border-gray-700 shadow-lg" 
+                onClick={() => console.log(task)} // Log task details on click
               >
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-xl font-bold text-white">{task.title}</h4>
@@ -166,19 +239,26 @@ const Task = () => {
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center text-gray-400">
                     <div className={`w-2 h-2 rounded-full mr-2 ${
-                      task.status === 'Completed' ? 'bg-green-400' :
-                      task.status === 'In Progress' ? 'bg-yellow-400' :
-                      'bg-red-400'
-                    }`}></div>
+                      task.status === 'Completed' ? 'bg-green-500' :
+                      task.status === 'In Progress' ? 'bg-yellow-500' : 'bg-red-500'
+                    }`} />
                     <span>{task.status}</span>
                   </div>
                   <div className="flex items-center text-gray-400">
-                    <AlertTriangle size={16} className="mr-2" />
-                    <span>{task.priority}</span>
+                    <Clock size={16} className="mr-1" />
+                    <span>
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
+                        : 'No due date'}
+                    </span>
                   </div>
                   <div className="flex items-center text-gray-400">
-                    <Clock size={16} className="mr-2" />
-                    <span>{task.dueDate}</span>
+                    <AlertTriangle size={16} className="mr-1" />
+                    <span>{task.priority}</span>
                   </div>
                 </div>
               </div>
@@ -190,13 +270,14 @@ const Task = () => {
   );
 };
 
+
 const Page = () => {
   return (
     <div className="bg-black min-h-screen w-full">
       <div className="mt-6">
         <Navbar />
       </div>
-      <div className="mt-8 mb-[5%]">
+      <div className="mt-4">
         <Task />
       </div>
     </div>

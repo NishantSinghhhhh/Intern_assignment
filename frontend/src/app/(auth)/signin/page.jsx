@@ -21,7 +21,7 @@ const SignIn = () => {
     event.preventDefault();
     setLoading(true);
     setErrorMessage(null);
-
+  
     try {
       const response = await fetch('http://localhost:8000/auth/signIn', {
         method: 'POST',
@@ -30,28 +30,34 @@ const SignIn = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const result = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(result.message || 'An unexpected error occurred');
       }
-
       if (result && typeof result === 'object') {
-        const { success, message, jwtToken, name, error } = result;
-
+        const { success, message, jwtToken, name, email, userId, error } = result; // Added userId
+      
         if (success) {
-          localStorage.setItem('token', jwtToken);
-          localStorage.setItem('loggedInUser', name);
-          localStorage.setItem('loginInfo', JSON.stringify({ email, registrationNumber: '', isStudent: true }));
-
-          // Update user context
-          updateUser({ email, name, token: jwtToken });
-
+          // Store the userId and other details in localStorage
+          const userInfo = {
+            id: userId, 
+            name, 
+            email, 
+            token: jwtToken,
+          };
+      
+          // Store the entire userInfo object
+          localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      
+          // Update user context (include userId)
+          updateUser(userInfo); // Update with the complete user object
+      
           // Show success toast
           toast.success("Login successful!");
-
-          // Redirect to home page
+      
+          // Redirect to home page after a short delay
           setTimeout(() => router.push('/home'), 1000);
         } else if (error) {
           const details = error?.details && Array.isArray(error.details) ? error.details[0]?.message : error.message;
@@ -61,7 +67,8 @@ const SignIn = () => {
           toast.error(message);
           setErrorMessage(message);
         }
-      } else {
+      }
+       else {
         throw new Error('Invalid response format');
       }
     } catch (err) {
@@ -73,7 +80,7 @@ const SignIn = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <Card className="w-full max-w-sm">

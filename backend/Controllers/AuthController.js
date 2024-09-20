@@ -1,6 +1,111 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {User} = require('../Models/User'); // Adjust path as necessary
+const { Todo } = require("../Models/Task");
+const mongoose = require('mongoose');
+
+// Inside AuthController.js
+
+const updateTodo = async (req, res) => {
+  const { id } = req.params; // Get todo ID from the request parameters
+  const updatedData = req.body; // Get updated data from the request body
+
+  try {
+    // Assuming you have a Todo model and a method to find and update a todo
+    const updatedTodo = await Todo.findByIdAndUpdate(id, updatedData, { new: true });
+
+    if (!updatedTodo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    res.status(200).json({ message: 'Todo updated successfully', todo: updatedTodo });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating todo', error: error.message });
+  }
+};
+
+
+const fetchTasksByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params; // Get userId from request parameters
+    console.log('Fetching tasks for user ID:', userId);
+
+    // Validate the ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Fetch tasks for the user using the correct field
+    const tasks = await Todo.find({ user: userId }).exec();
+    console.log('Fetched tasks:', tasks);
+
+    if (!tasks || tasks.length === 0) {
+      return res.status(404).json({ message: 'No tasks found for this user' });
+    }
+
+    res.status(200).json({
+      success: true,
+      tasks,
+    });
+  } catch (err) {
+    console.error('Error fetching tasks:', err.message);
+    res.status(500).json({
+      message: 'Internal server error',
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+
+const addTodo = async (req, res) => {
+  try {
+    // Log the request body
+    console.log('Request body:', req.body);
+
+    const { title, description, status, priority, dueDate, userId } = req.body;
+
+    // Validate that all necessary fields are provided
+    if (!title || !status || !priority || !userId) {
+      return res.status(400).json({
+        message: 'Title, status, priority, and user ID are required',
+        success: false,
+      });
+    }
+
+    // Create a new todo instance
+    const todo = new Todo({
+      title,
+      description, // Optional, can be left empty
+      status,
+      priority,
+      dueDate: dueDate ? new Date(dueDate) : null, // Ensure dueDate is a valid date or null
+      user: userId, // Reference to the user
+    });
+
+    console.log('Todo object before saving:', todo);
+
+    // Save the new todo to the database
+    const savedTodo = await todo.save();
+
+    console.log('Saved todo:', savedTodo);
+
+    res.status(201).json({
+      message: 'Todo added successfully',
+      success: true,
+      todo: savedTodo, // Optionally, return the saved todo
+    });
+  } catch (err) {
+    console.error('Error during adding todo:', err.stack);
+    res.status(500).json({
+      message: 'Internal server error',
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+
 
 const signIn = async (req, res) => {
   console.log('SignIn function triggered'); // Log function entry
@@ -50,13 +155,17 @@ const signIn = async (req, res) => {
     console.log('JWT token generated:', jwtToken); // Log token generation
 
     // Send success response
-    res.status(200).json({
-      message: "Login successful",
-      success: true,
-      jwtToken,
-      email,
-      name: user.name
-    });
+   // Send success response
+res.status(200).json({
+  message: "Login successful",
+  success: true,
+  jwtToken,
+  email,
+  name: user.name,
+  userId: user._id // Ensure this is being sent
+});
+
+    
 
   } catch (err) {
     console.error('Login error:', err); // Log the error for debugging
@@ -119,4 +228,4 @@ const signup = async (req, res) => {
     }
 };
 
-module.exports = { signup, signIn};
+module.exports = { signup, signIn, addTodo, fetchTasksByUserId, updateTodo};

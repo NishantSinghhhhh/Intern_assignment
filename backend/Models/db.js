@@ -9,6 +9,12 @@ const db1 = mongoose.createConnection(mongo_url, {
     serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
 });
 
+const db2 = mongoose.createConnection(mongo_url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+});
+
 // Listen for connection events
 db1.once('open', () => {
     console.log('Connected to MongoDB successfully');
@@ -35,4 +41,4 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-module.exports = { db1 };
+module.exports = { db1, db2 };
