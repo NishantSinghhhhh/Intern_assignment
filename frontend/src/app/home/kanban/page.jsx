@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useCallback } from 'react';
 import Draggable from 'react-draggable';
 import Navbar from '@/elements/Navbar'; // Adjust the import path as needed
 import { useUser } from '@/context/UserContext'; // Adjust the import path as needed
@@ -81,26 +81,25 @@ const Kanban = () => {
     });
   };
 
+  const handleStop = useCallback((taskId, x) => {
+    const newStatus = x > 200 ? (tasks.todo.some(t => t.id === taskId) ? 'In Progress' : 'Done') : 'To Do';
+    handleDrag(taskId, newStatus);
+  }, [tasks]);
+
+
   return (
-    <div className="flex gap-6 p-6 overflow-x-auto">
+   <div className="flex gap-6 p-6 overflow-x-auto">
       {Object.keys(tasks).map((status) => (
         <div key={status} className="bg-gray-800 rounded-lg shadow-lg p-4 w-1/4 min-w-[250px]">
           <h2 className="text-white text-lg font-bold mb-4 capitalize">{status}</h2>
           {tasks[status].map((task) => (
-            <Draggable
-              key={task.id}
-              onStop={(e, data) => {
-                const newStatus = data.x > 200 ? (status === 'todo' ? 'In Progress' : 'Done') : 'To Do'; // Change status logic
-                handleDrag(task.id, newStatus);
-              }}
-            >
+            <Draggable key={task.id} onStop={(e, data) => handleStop(task.id, data.x)}>
               <div
-                className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition duration-300 hover:bg-black/50 mb-4 cursor-pointer"
+                className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-black/50 mb-4 cursor-pointer"
                 onClick={() => console.log(task)}
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
                   <h4 className="text-2xl font-bold text-white mb-2 sm:mb-0">{task.title}</h4>
-              
                 </div>
                 <p className="text-gray-300 mb-6">{task.description}</p>
                 <div className="flex flex-wrap gap-6">
