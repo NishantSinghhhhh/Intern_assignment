@@ -30,7 +30,7 @@ const Task = () => {
       if (!user || !user.id) return;
 
       try {
-        const response = await fetch(`https://intern-assignment-backend.vercel.app/auth/fetchtasks/${user.id}`);
+        const response = await fetch(`https://intern-assignment-backend.vercel.app/auth/fetchtasks/${user.id}`, {mode:'no-cors'} ,);
         const result = await response.json();
         if (!response.ok) {
           throw new Error(result.message || 'An unexpected error occurred');
@@ -63,7 +63,7 @@ const Task = () => {
     }
 
     try {
-      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/task', {
+      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/task',{mode:'no-cors'} , {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const Task = () => {
     setErrorMessage(null);
   
     try {
-      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/deletetodos', {
+      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/deletetodos',{mode:'no-cors'} , {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ const Task = () => {
     setErrorMessage(null);
   
     try {
-      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/updatetask', {
+      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/updatetask', {mode:'no-cors'} ,{
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
