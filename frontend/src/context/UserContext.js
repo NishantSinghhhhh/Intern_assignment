@@ -1,14 +1,18 @@
 'use client'
-import React, { createContext, useContext, useState,  } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
-  // Initialize user state with data from local storage
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState({ id: '', name: '', email: '' });
+
+  useEffect(() => {
+    // Access localStorage only after the component has mounted
     const storedUser = localStorage.getItem('userInfo');
-    return storedUser ? JSON.parse(storedUser) : { id: '', name: '', email: '' };
-  });
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []); // Run only once after mount
 
   const updateUser = (userData) => {
     setUser(userData);

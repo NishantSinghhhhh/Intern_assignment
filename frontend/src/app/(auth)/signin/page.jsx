@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify'; // Ensure this import is correct
-import { useUser } from '@/context/UserContext'; // Import useUser hook
+import { toast } from 'react-toastify';
+import { useUser } from '@/context/UserContext';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
-  const { updateUser } = useUser(); // Use the setUser function from context
+  const { updateUser } = useUser();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -36,28 +36,26 @@ const SignIn = () => {
       if (!response.ok) {
         throw new Error(result.message || 'An unexpected error occurred');
       }
-      if (result && typeof result === 'object') {
-        const { success, message, jwtToken, name, email, userId, error } = result; // Added userId
       
+      if (result && typeof result === 'object') {
+        const { success, message, jwtToken, name, email: userEmail, userId, error } = result;
+
         if (success) {
-          // Store the userId and other details in localStorage
           const userInfo = {
             id: userId, 
             name, 
-            email, 
+            email: userEmail, 
             token: jwtToken,
           };
-      
-          // Store the entire userInfo object
-          localStorage.setItem('userInfo', JSON.stringify(userInfo));
-      
-          // Update user context (include userId)
-          updateUser(userInfo); // Update with the complete user object
-      
-          // Show success toast
+
+          // Store userInfo in localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+          }
+
+          updateUser(userInfo);
+
           toast.success("Login successful!");
-      
-          // Redirect to home page after a short delay
           setTimeout(() => router.push('/home'), 1000);
         } else if (error) {
           const details = error?.details && Array.isArray(error.details) ? error.details[0]?.message : error.message;
@@ -67,8 +65,7 @@ const SignIn = () => {
           toast.error(message);
           setErrorMessage(message);
         }
-      }
-       else {
+      } else {
         throw new Error('Invalid response format');
       }
     } catch (err) {
