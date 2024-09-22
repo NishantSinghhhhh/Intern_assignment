@@ -39,7 +39,7 @@ const SignUp = () => {
       // Log URL to ensure it's correct
       console.log('API URL:', url);
 
-      const response = await fetch(url, {mode : 'no-cors'}, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ const SignUp = () => {
           email: formData.email,
           password: formData.password
         }),
-        mode: 'cors' // Ensure CORS is enabled, avoid 'no-cors' to allow proper responses
+        mode: 'no-cors' // Ensure CORS is enabled, avoid 'no-cors' to allow proper responses
       });
 
       // Log the response status to ensure the request went through
