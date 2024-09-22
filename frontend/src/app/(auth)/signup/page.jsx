@@ -35,7 +35,7 @@ const SignUp = () => {
 
     try {
       const url = `https://intern-assignment-backend.vercel.app/auth/signUp`; 
-      const response = await fetch(url, {
+      const response = await fetch(url, {mode:'no-cors'} , {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
