@@ -45,7 +45,14 @@ const SignUp = () => {
           email: formData.email,
           password: formData.password
         })
-      });
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => console.log(data))
+      .catch(error => console.error('Error:', error));
 
       if (!response.ok) {
         const errorData = await response.json();

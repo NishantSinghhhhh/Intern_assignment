@@ -23,7 +23,7 @@ const SignIn = () => {
     setErrorMessage(null);
   
     try {
-      const response = await fetch('https://intern-assignment-b-git-d1ddc6-nishant-singhs-projects-7b2e026b.vercel.app/auth/signIn',{mode:'no-cors'} ,{
+      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/signIn',{mode:'no-cors'} ,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
