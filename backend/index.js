@@ -17,6 +17,9 @@ app.use(cors({
     allowedHeaders: 'Content-Type, Authorization', // Allow necessary headers
     credentials : true
 }))
+app.get('/', (req, res) => {
+    res.json("PONG");
+});
 app.use(express.json());
 app.use('/auth', authRoutes);
 
