@@ -33,8 +33,8 @@ const SignUp = () => {
     // Log the form data before sending it
     console.log('Form Data:', formData);
 
-    try {         
-      const url = `https://intern-assignment-backend.vercel.app/auth/signUp`; 
+    try {
+      const url = `http://localhost:8000/auth/signUp`; 
       const response = await fetch(url, {
         method: "POST",
         headers: {

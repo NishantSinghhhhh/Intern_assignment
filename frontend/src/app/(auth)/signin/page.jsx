@@ -23,7 +23,7 @@ const SignIn = () => {
     setErrorMessage(null);
   
     try {
-      const response = await fetch('https://intern-assignment-backend.vercel.app/auth/signIn', {
+      const response = await fetch('http://localhost:8000/auth/signIn', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

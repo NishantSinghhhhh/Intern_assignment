@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Clock, AlertTriangle } from 'lucide-react';
+import { Edit2, Trash2, Clock } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 
 const Task = () => {
@@ -18,6 +18,12 @@ const Task = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [filters, setFilters] = useState({
+    status: '',
+    priority: '',
+    dueDate: '',
+  });
+  const [sortBy, setSortBy] = useState('');
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -90,8 +96,6 @@ const Task = () => {
     setLoading(true);
     setErrorMessage(null);
   
-    console.log('Task data to be deleted:', task);
-  
     try {
       const response = await fetch('http://localhost:8000/auth/deletetodos', {
         method: 'DELETE',
@@ -151,13 +155,30 @@ const Task = () => {
     }
   };
 
+  const filteredTasks = tasks
+    .filter(task => {
+      return (
+        (!filters.status || task.status === filters.status) &&
+        (!filters.priority || task.priority === filters.priority) &&
+        (!filters.dueDate || new Date(task.dueDate).toISOString().slice(0, 10) === filters.dueDate)
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === 'status') return a.status.localeCompare(b.status);
+      if (sortBy === 'priority') return a.priority.localeCompare(b.priority);
+      if (sortBy === 'dueDate') return new Date(a.dueDate) - new Date(b.dueDate);
+      return 0;
+    });
+
   return (
-<div className="min-h-screen  p-4 sm:p-8">
+    <div className="min-h-screen p-4 sm:p-8">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row w-full lg:w-[90%] mx-auto gap-8">
           <div className="task-background w-full lg:w-1/2 bg-cover bg-no-repeat p-8 text-center text-white font-semibold rounded-2xl relative overflow-hidden flex justify-center items-center mb-8 lg:mb-0 bg-black/30 backdrop-filter backdrop-blur-lg border border-blue-500/10 shadow-xl">
             <div className="relative z-10">
-              <h2 className="task-title text-4xl lg:text-6xl text-left font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Effective Task Management</h2>
+              <h2 className="task-title text-4xl lg:text-6xl text-left font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+                Effective Task Management
+              </h2>
               <p className="task-description text-left text-lg text-gray-300">Prioritize and set deadlines for optimal results.</p>
             </div>
           </div>
@@ -221,16 +242,6 @@ const Task = () => {
                   </select>
                 </div>
               </div>
-              <div className="task-input">
-                <label className="block text-gray-300 mb-2">Due Date</label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={task.dueDate}
-                  onChange={handleChange}
-                  className="w-full p-3 rounded-lg bg-black/50 text-white outline-none border border-blue-500/30 focus:border-blue-400 transition duration-300"
-                />
-              </div>
               <div className="flex justify-between">
                 {!isEditing && (
                   <button
@@ -256,66 +267,84 @@ const Task = () => {
             </form>
           </div>
         </div>
-        <div className="task-list mt-12 w-full lg:w-[90%] mx-auto">
-          <h3 className="text-3xl font-semibold text-white mb-8">Task List</h3>
-          {tasks.length === 0 ? (
-            <p className="text-white text-center text-lg">No tasks available</p>
-          ) : (
-            <div className="space-y-6">
-              {tasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition duration-300 hover:bg-black/50" 
-                  onClick={() => console.log(task)}
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
-                    <h4 className="text-2xl font-bold text-white mb-2 sm:mb-0">{task.title}</h4>
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={() => handleEdit(task)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors transform hover:scale-110"
-                      >
-                        <Edit2 size={24} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(task)}
-                        className="text-red-400 hover:text-red-300 transition-colors transform hover:scale-110"
-                      >
-                        <Trash2 size={24} />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 mb-6">{task.description}</p>
-                  <div className="flex flex-wrap gap-6">
-                    <div className="flex items-center text-gray-300">
-                      <div className={`w-3 h-3 rounded-full mr-2 ${
-                        task.status === 'Completed' ? 'bg-green-500' :
-                        task.status === 'In Progress' ? 'bg-yellow-500' : 'bg-red-500'
-                      }`} />
-                      <span>{task.status}</span>
-                    </div>
-                    <div className="flex items-center text-gray-300">
-                      <Clock size={18} className="mr-2" />
-                      <span>
-                        {task.dueDate
-                          ? new Date(task.dueDate).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            })
-                          : 'No due date'}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-gray-300">
-                      <AlertTriangle size={18} className="mr-2" />
-                      <span>{task.priority}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+
+        <div className="task-controls mt-8 flex flex-col md:flex-row gap-4">
+          <select
+            className="p-3 rounded-lg bg-black/50 text-white border border-blue-500/30 focus:border-blue-400 transition duration-300"
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          >
+            <option value="">All Statuses</option>
+            <option value="To Do">To Do</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+
+          <select
+            className="p-3 rounded-lg bg-black/50 text-white border border-blue-500/30 focus:border-blue-400 transition duration-300"
+            onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+          >
+            <option value="">All Priorities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+
+          <input
+            type="date"
+            className="p-3 rounded-lg bg-black/50 text-white border border-blue-500/30 focus:border-blue-400 transition duration-300"
+            onChange={(e) => setFilters({ ...filters, dueDate: e.target.value })}
+          />
+
+          <select
+            className="p-3 rounded-lg bg-black/50 text-white border border-blue-500/30 focus:border-blue-400 transition duration-300"
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="">Sort By</option>
+            <option value="status">Status</option>
+            <option value="priority">Priority</option>
+            <option value="dueDate">Due Date</option>
+          </select>
         </div>
+
+        <div className="task-list mt-8">
+          {filteredTasks.map((task) => (
+            <div key={task.id} className="task-item p-4 mb-4 bg-black/50 rounded-lg shadow-md text-white border border-blue-500/20 flex justify-between items-center">
+              <div>
+                <h3 className="task-title text-xl font-semibold mb-2">{task.title}</h3>
+                <p className="task-description text-gray-300">{task.description}</p>
+                <div className="task-meta mt-4 flex items-center space-x-4">
+                  <span className="text-sm text-blue-300">
+                    Status: {task.status}
+                  </span>
+                  <span className="text-sm text-yellow-300">
+                    Priority: {task.priority}
+                  </span>
+                  <span className="text-sm text-red-300 flex items-center">
+                    <Clock className="mr-1 h-4 w-4" />
+                    Due Date: {new Date(task.dueDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <div className="task-actions flex items-center space-x-4">
+                <button
+                  className="bg-blue-600 p-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                  onClick={() => handleEdit(task)}
+                >
+                  <Edit2 className="h-5 w-5 text-white" />
+                </button>
+                <button
+                  className="bg-red-600 p-2 rounded-lg hover:bg-red-700 transition duration-300"
+                  onClick={() => handleDelete(task)}
+                >
+                  <Trash2 className="h-5 w-5 text-white" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
+        {loading && <p className="text-blue-300 mt-4">Loading...</p>}
       </div>
     </div>
   );

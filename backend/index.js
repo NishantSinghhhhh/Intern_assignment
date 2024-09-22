@@ -1,33 +1,29 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
+const dotenv = require('dotenv'); // Import the dotenv module
+const app = express();
 const authRoutes = require('./Routes/authRoutes');
 
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Import the database connection
 require('./Models/db');
 
-// Apply CORS middleware
-app.use(cors({
-  origin: 'https://intern-assignment-frontend.vercel.app',
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(cors());
 
 app.use(express.json());
 app.use('/auth', authRoutes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
-});
+// app.use((err, req, res, next) => {
+//     console.error(err.stack);
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//     next();
+// });
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
 });

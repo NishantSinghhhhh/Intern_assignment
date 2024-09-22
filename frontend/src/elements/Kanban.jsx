@@ -1,8 +1,8 @@
+
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Draggable from 'react-draggable';
-
 import { useUser } from '@/context/UserContext'; // Adjust the import path as needed
 
 const Kanban = () => {
@@ -93,11 +93,11 @@ const Kanban = () => {
   
     // Map newStatus to the correct enum value
     let mappedStatus;
-    if (newStatus === 'todo') {
+    if (newStatus === 'To Do') {
       mappedStatus = 'To Do';
-    } else if (newStatus === 'inProgress') {
+    } else if (newStatus === 'In Progress') {
       mappedStatus = 'In Progress';
-    } else if (newStatus === 'done') {
+    } else if (newStatus === 'Completed') {
       mappedStatus = 'Completed';
     }
   
@@ -142,75 +142,71 @@ const Kanban = () => {
 
   return (
     <div className="flex gap-6 p-6 h-[100vh] ">
-      {/* "To Do" Column */}
-      <div
-        ref={todoColumnRef}
-        className="todo-column h-[40%] bg-gray-800 rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
-        style={{
-          transform: 'translate(0, 0)',
-          transition: 'box-shadow 0.3s ease, transform 0.1s ease',
-        }}
-      >
-        <h2 className="text-white text-lg font-bold mb-4">To Do</h2>
-        {tasks.todo.map((task) => (
-          <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
-            <div
-              className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-black/50 mb-4 cursor-move select-none"
-              onClick={() => handleCardClick(task)}
-            >
-              <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
-              <p className="text-gray-300">{task.description}</p>
-            </div>
-          </Draggable>
-        ))}
-      </div>
-  
-      {/* "In Progress" Column */}
-      <div
-        ref={inProgressColumnRef}
-        className="in-progress-column h-[40%] bg-gray-800 rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
-        style={{
-          transform: 'translate(0, 0)',
-          transition: 'box-shadow 0.3s ease, transform 0.1s ease',
-        }}
-      >
-        <h2 className="text-white text-lg font-bold mb-4">In Progress</h2>
-        {tasks.inProgress.map((task) => (
-          <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
-            <div
-              className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-black/50 mb-4 cursor-move select-none"
-              onClick={() => handleCardClick(task)}
-            >
-              <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
-              <p className="text-gray-300">{task.description}</p>
-            </div>
-          </Draggable>
-        ))}
-      </div>
-  
-      {/* "Completed" Column */}
-      <div
-        ref={completedColumnRef}
-        className="completed-column h-[40%] bg-gray-800 rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
-        style={{
-          transform: 'translate(0, 0)',
-          transition: 'box-shadow 0.3s ease, transform 0.1s ease',
-        }}
-      >
-        <h2 className="text-white text-lg font-bold mb-4">Completed</h2>
-        {tasks.completed.map((task) => (
-          <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
-            <div
-              className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-black/50 mb-4 cursor-move select-none"
-              onClick={() => handleCardClick(task)}
-            >
-              <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
-              <p className="text-gray-300">{task.description}</p>
-            </div>
-          </Draggable>
-        ))}
-      </div>
-    </div>
+  {/* "To Do" Column */}
+  <div
+    ref={todoColumnRef}
+    className="todo-column h-[40%] bg-blue-900 backdrop-filter backdrop-blur-md bg-gray-900/70 backdrop-filter backdrop-blur-md  rounded-lg shadow-lg p-4 flex-1 min-w-[250px] transform transition-transform duration-100 hover:shadow-lg"
+  >
+    <h2 className="text-white text-lg font-bold mb-4">To Do</h2>
+    {tasks.todo.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
+        </div>
+      </Draggable>
+    ))}
+  </div>
+
+  <div
+    ref={inProgressColumnRef}
+    className="in-progress-column h-[40%]  bg-blue-900 backdrop-filter backdrop-blur-md rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
+    style={{
+      transform: 'translate(0, 0)',
+      transition: 'box-shadow 0.3s ease, transform 0.1s ease',
+    }}
+  >
+    <h2 className="text-white text-lg font-bold mb-4">In Progress</h2>
+    {tasks.inProgress.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
+        </div>
+      </Draggable>
+    ))}
+  </div>
+
+  {/* "Completed" Column */}
+  <div
+    ref={completedColumnRef}
+    className="completed-column bg-blue-900 backdrop-filter backdrop-blur-md h-[40%] rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
+    style={{
+      transform: 'translate(0, 0)',
+      transition: 'box-shadow 0.3s ease, transform 0.1s ease',
+    }}
+  >
+    <h2 className="text-white text-lg font-bold mb-4">Completed</h2>
+    {tasks.completed.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
+        </div>
+      </Draggable>
+    ))}
+  </div>
+</div>
+
   );
   
 };
