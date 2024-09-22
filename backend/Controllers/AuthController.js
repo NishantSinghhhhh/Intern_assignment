@@ -4,6 +4,35 @@ const {User} = require('../Models/User'); // Adjust path as necessary
 const { Todo } = require("../Models/Task");
 const mongoose = require('mongoose');
 
+const updateStatus = async (req, res) => {
+  const { id } = req.params; // Get the ID from the URL parameters
+  const { status } = req.body; // Get the status from the request body
+
+  console.log('Updating Todo Status:', { id, status });
+
+  try {
+    // Use the ID to find and update the status in the database
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      id, // Use the ID from the parameters
+      { status }, // Update the status field
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedTodo) {
+      console.log('Todo not found for ID:', id);
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    console.log('Todo status updated successfully:', updatedTodo);
+    res.status(200).json({ message: 'Todo status updated successfully', todo: updatedTodo });
+  } catch (error) {
+    console.error('Error updating todo status:', error);
+    res.status(500).json({ message: 'Error updating todo status', error: error.message });
+  }
+};
+
+
+
 const deleteTodo = async (req, res) => {
   const todoData = req.body; // Get the todo data from request body
   const { _id } = todoData; // Extract the _id from the data
@@ -148,33 +177,30 @@ const addTodo = async (req, res) => {
 
 
 const signIn = async (req, res) => {
-  console.log('SignIn function triggered'); // Log function entry
+  console.log('SignIn function triggered'); 
 
   try {
     const { email, password } = req.body;
 
-    // Check if email and password are provided
     if (!email || !password) {
-      console.log('Email or password not provided'); // Log missing fields
+      console.log('Email or password not provided'); 
       return res.status(400).json({
         message: "Email and password are required",
         success: false
       });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
     console.log('User found:', user ? user.email : 'No user found'); // Log user search result
 
     if (!user) {
-      console.log('Authentication failed: user not found'); // Log authentication failure
+      console.log('Authentication failed: user not found'); 
       return res.status(403).json({
         message: "Authentication failed, email or password is wrong",
         success: false
       });
     }
 
-    // Compare provided password with stored hashed password
     const isPassEqual = await bcrypt.compare(password, user.password);
     console.log('Password match status:', isPassEqual); // Log password comparison result
 
@@ -192,23 +218,21 @@ const signIn = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    console.log('JWT token generated:', jwtToken); // Log token generation
+    console.log('JWT token generated:', jwtToken); 
 
-    // Send success response
-   // Send success response
 res.status(200).json({
   message: "Login successful",
   success: true,
   jwtToken,
   email,
   name: user.name,
-  userId: user._id // Ensure this is being sent
+  userId: user._id 
 });
 
     
 
   } catch (err) {
-    console.error('Login error:', err); // Log the error for debugging
+    console.error('Login error:', err); 
     res.status(500).json({
       message: "Internal server error",
       success: false
@@ -218,7 +242,6 @@ res.status(200).json({
 
 const signup = async (req, res) => {
     try {
-        // Log the request body
         console.log('Request body:', req.body);
 
         const { name, email, password } = req.body;
@@ -235,11 +258,10 @@ const signup = async (req, res) => {
             });
         }
 
-        // Create a new user instance
         const user = new User({
             name,
             email,
-            password, // Will be hashed before saving
+            password,
         });
 
         console.log('User object before hashing:', user);
@@ -268,4 +290,4 @@ const signup = async (req, res) => {
     }
 };
 
-module.exports = { signup, signIn, addTodo, fetchTasksByUserId, updateTodo, deleteTodo};
+module.exports = { signup, signIn, addTodo, fetchTasksByUserId, updateTodo, deleteTodo, updateStatus};

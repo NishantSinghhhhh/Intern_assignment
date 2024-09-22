@@ -1,26 +1,21 @@
 'use client';
 
-import React, { useEffect, useState , useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Draggable from 'react-draggable';
 import Navbar from '@/elements/Navbar'; // Adjust the import path as needed
 import { useUser } from '@/context/UserContext'; // Adjust the import path as needed
-import { Clock, AlertTriangle } from 'lucide-react'; // Import your icons here
 
 const Kanban = () => {
   const { user } = useUser();
   const [tasks, setTasks] = useState({
     todo: [],
     inProgress: [],
-    done: [],
+    completed: [],
   });
 
-  // Function to create random tasks for demo purposes
-  const createRandomTask = (status) => ({
-    id: Math.random().toString(36).substr(2, 9),
-    title: `Task ${Math.floor(Math.random() * 100)}`,
-    description: 'This is a random task description.',
-    status,
-  });
+  const todoColumnRef = useRef(null);
+  const inProgressColumnRef = useRef(null);
+  const completedColumnRef = useRef(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -28,25 +23,29 @@ const Kanban = () => {
         console.log('Fetching tasks for user ID:', user.id);
         const response = await fetch(`http://localhost:8000/auth/fetchtasks/${user.id}`);
         const data = await response.json();
-
+    
+        console.log('Fetched data:', data); // Log the raw data
+    
         if (response.ok) {
-          console.log('Fetched tasks:', data);
           const organizedTasks = {
             todo: [],
             inProgress: [],
-            done: [],
+            completed: [],
           };
-
+    
           data.tasks.forEach((task) => {
+            // Check the actual status values from the backend
             if (task.status === 'To Do') {
               organizedTasks.todo.push(task);
-            } else if (task.status === 'In Progress') {
+            } else if (task.status === 'In Progress') { // Use the actual status
               organizedTasks.inProgress.push(task);
-            } else if (task.status === 'Done') {
-              organizedTasks.done.push(task);
+            } else if (task.status === 'Completed') { // Use the actual status
+              organizedTasks.completed.push(task);
             }
           });
-
+    
+          console.log('Organized tasks:', organizedTasks); // Log organized tasks
+    
           setTasks(organizedTasks);
         } else {
           console.error('Error fetching tasks:', data.message);
@@ -55,90 +54,166 @@ const Kanban = () => {
         console.error('Error fetching tasks:', error);
       }
     };
+    
 
     if (user.id) {
       fetchTasks();
-    } else {
-      // Create random tasks for demo if no user ID
-      setTasks({
-        todo: [createRandomTask('To Do'), createRandomTask('To Do')],
-        inProgress: [createRandomTask('In Progress')],
-        done: [createRandomTask('Done')],
-      });
     }
   }, [user.id]);
 
-  const handleDrag = (taskId, newStatus) => {
-    setTasks((prevTasks) => {
-      const newTasks = { ...prevTasks };
-      const task = Object.values(newTasks).flat().find((t) => t.id === taskId);
-      if (task) {
-        newTasks[task.status.toLowerCase()].splice(newTasks[task.status.toLowerCase()].indexOf(task), 1);
-        task.status = newStatus;
-        newTasks[newStatus.toLowerCase()].push(task);
-      }
-      return newTasks;
-    });
+  const checkDropLocation = (x, y) => {
+    let todoRect, inProgressRect, completedRect;
+
+    if (todoColumnRef.current) {
+      todoRect = todoColumnRef.current.getBoundingClientRect();
+    }
+
+    if (inProgressColumnRef.current) {
+      inProgressRect = inProgressColumnRef.current.getBoundingClientRect();
+    }
+
+    if (completedColumnRef.current) {
+      completedRect = completedColumnRef.current.getBoundingClientRect();
+    }
+
+    if (todoRect && x >= todoRect.left && x <= todoRect.right && y >= todoRect.top && y <= todoRect.bottom) {
+      return 'To Do';
+    } else if (inProgressRect && x >= inProgressRect.left && x <= inProgressRect.right && y >= inProgressRect.top && y <= inProgressRect.bottom) {
+      return 'In Progress';
+    } else if (completedRect && x >= completedRect.left && x <= completedRect.right && y >= completedRect.top && y <= completedRect.bottom) {
+      return 'Completed';
+    } else {
+      return null;
+    }
   };
 
-  const handleStop = useCallback((taskId, x) => {
-    const newStatus = x > 200 ? (tasks.todo.some(t => t.id === taskId) ? 'In Progress' : 'Done') : 'To Do';
-    handleDrag(taskId, newStatus);
-  }, [tasks]);
+  const handleCardMove = useCallback(async (task, newStatus) => {
+    console.log('Function called: handleCardMove');
+    console.log(`Moving task ${task._id} to ${newStatus}`, task);
+  
+    // Map newStatus to the correct enum value
+    let mappedStatus;
+    if (newStatus === 'todo') {
+      mappedStatus = 'To Do';
+    } else if (newStatus === 'inProgress') {
+      mappedStatus = 'In Progress';
+    } else if (newStatus === 'done') {
+      mappedStatus = 'Completed';
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:8000/auth/updatetaskStatus/${task._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: mappedStatus }), // Send the mapped status
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error updating task:', errorData.message);
+        return;
+      }
+  
+      const updatedTodo = await response.json();
+      console.log('Task updated successfully:', updatedTodo.todo);
+      // Optionally, update your local state here if needed
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  }, []);
+  
+  
+  const handleStop = useCallback(
+    (e, data, task) => {
+      console.log(`Task drag stopped at X: ${data.x}px, Y: ${data.y}px`);
+      const newStatus = checkDropLocation(e.clientX, e.clientY);
+      if (newStatus) {
+        handleCardMove(task, newStatus); // Pass the entire task object
+      }
+    },
+    [handleCardMove]
+  );
 
+  const handleCardClick = (task) => {
+    console.log('Card clicked:', task);
+  };
 
   return (
-   <div className="flex gap-6 p-6 overflow-x-auto">
-      {Object.keys(tasks).map((status) => (
-        <div key={status} className="bg-gray-800 rounded-lg shadow-lg p-4 w-1/4 min-w-[250px]">
-          <h2 className="text-white text-lg font-bold mb-4 capitalize">{status}</h2>
-          {tasks[status].map((task) => (
-            <Draggable key={task.id} onStop={(e, data) => handleStop(task.id, data.x)}>
-              <div
-                className="task-item bg-black/30 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-black/50 mb-4 cursor-pointer"
-                onClick={() => console.log(task)}
-              >
-                <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
-                  <h4 className="text-2xl font-bold text-white mb-2 sm:mb-0">{task.title}</h4>
-                </div>
-                <p className="text-gray-300 mb-6">{task.description}</p>
-                <div className="flex flex-wrap gap-6">
-                  <div className="flex items-center text-gray-300">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${
-                      task.status === 'Completed' ? 'bg-green-500' :
-                      task.status === 'In Progress' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`} />
-                    <span>{task.status}</span>
-                  </div>
-                  <div className="flex items-center text-gray-300">
-                    <Clock size={18} className="mr-2" />
-                    <span>
-                      {task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
-                        : 'No due date'}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-gray-300">
-                    <AlertTriangle size={18} className="mr-2" />
-                    <span>{task.priority}</span>
-                  </div>
-                </div>
-              </div>
-            </Draggable>
-          ))}
+    <div className="flex gap-6 p-6 h-[100vh] ">
+  {/* "To Do" Column */}
+  <div
+    ref={todoColumnRef}
+    className="todo-column h-[40%] bg-blue-900 backdrop-filter backdrop-blur-md bg-gray-900/70 backdrop-filter backdrop-blur-md  rounded-lg shadow-lg p-4 flex-1 min-w-[250px] transform transition-transform duration-100 hover:shadow-lg"
+  >
+    <h2 className="text-white text-lg font-bold mb-4">To Do</h2>
+    {tasks.todo.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
         </div>
-      ))}
-    </div>
+      </Draggable>
+    ))}
+  </div>
+
+  <div
+    ref={inProgressColumnRef}
+    className="in-progress-column h-[40%]  bg-blue-900 backdrop-filter backdrop-blur-md rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
+    style={{
+      transform: 'translate(0, 0)',
+      transition: 'box-shadow 0.3s ease, transform 0.1s ease',
+    }}
+  >
+    <h2 className="text-white text-lg font-bold mb-4">In Progress</h2>
+    {tasks.inProgress.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
+        </div>
+      </Draggable>
+    ))}
+  </div>
+
+  {/* "Completed" Column */}
+  <div
+    ref={completedColumnRef}
+    className="completed-column bg-blue-900 backdrop-filter backdrop-blur-md h-[40%] rounded-lg shadow-lg p-4 flex-1 min-w-[250px]"
+    style={{
+      transform: 'translate(0, 0)',
+      transition: 'box-shadow 0.3s ease, transform 0.1s ease',
+    }}
+  >
+    <h2 className="text-white text-lg font-bold mb-4">Completed</h2>
+    {tasks.completed.map((task) => (
+      <Draggable key={task._id} onStop={(e, data) => handleStop(e, data, task)}>
+        <div
+          className="task-item bg-gray-900/70 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-blue-500/20 shadow-xl transition-all duration-200 hover:bg-gray-900/80 mb-4 cursor-move select-none"
+          onClick={() => handleCardClick(task)}
+        >
+          <h4 className="text-2xl font-bold text-white mb-2">{task.title}</h4>
+          <p className="text-gray-300">{task.description}</p>
+        </div>
+      </Draggable>
+    ))}
+  </div>
+</div>
+
   );
+  
 };
 
 const Page = () => {
   return (
-    <div className="bg-black min-h-screen w-full">
+    <div className="bg-black bg-gradient-to-br from-gray-900 via-blue-950 to-black  min-h-screen w-full">
       <Navbar />
       <Kanban />
     </div>

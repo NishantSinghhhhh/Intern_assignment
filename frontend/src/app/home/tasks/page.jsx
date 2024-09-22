@@ -154,7 +154,7 @@ const Task = () => {
   };
 
   return (
-<div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-black p-4 sm:p-8">
+<div className="min-h-screen  p-4 sm:p-8">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row w-full lg:w-[90%] mx-auto gap-8">
           <div className="task-background w-full lg:w-1/2 bg-cover bg-no-repeat p-8 text-center text-white font-semibold rounded-2xl relative overflow-hidden flex justify-center items-center mb-8 lg:mb-0 bg-black/30 backdrop-filter backdrop-blur-lg border border-blue-500/10 shadow-xl">
@@ -326,7 +326,7 @@ const Task = () => {
 // export default Task;
 const Page = () => {
   return (
-    <div className="bg-black min-h-screen w-full">
+    <div className="bg-black min-h-screen w-full bg-gradient-to-br from-gray-900 via-blue-950 to-black">
       <div className="">
         <Navbar />
       </div>
