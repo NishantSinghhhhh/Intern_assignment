@@ -21,7 +21,7 @@ const Kanban = () => {
     const fetchTasks = async () => {
       try {
         console.log('Fetching tasks for user ID:', user.id);
-        const response = await fetch(`https://intern-assignment-backend-nishant-singhs-projects-7b2e026b.vercel.app/auth/fetchtasks/${user.id}`);
+        const response = await fetch(`https://intern-assignment-backend.vercel.app/auth/fetchtasks/${user.id}`);
         const data = await response.json();
     
         console.log('Fetched data:', data); // Log the raw data
@@ -102,7 +102,7 @@ const Kanban = () => {
     }
   
     try {
-      const response = await fetch(`https://intern-assignment-backend-nishant-singhs-projects-7b2e026b.vercel.app/auth/updatetaskStatus/${task._id}`, {
+      const response = await fetch(`https://intern-assignment-backend.vercel.app/auth/updatetaskStatus/${task._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

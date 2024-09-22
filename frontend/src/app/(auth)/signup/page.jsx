@@ -34,7 +34,7 @@ const SignUp = () => {
     console.log('Form Data:', formData);
 
     try {
-      const url = `https://intern-assignment-backend-nishant-singhs-projects-7b2e026b.vercel.app/auth/signUp`; 
+      const url = `https://intern-assignment-backend.vercel.app/auth/signUp`; 
       const response = await fetch(url, {
         method: "POST",
         headers: {
