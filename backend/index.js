@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 8080;
 require('./Models/db');
 
 app.use(cors({
-    origin: ["http://localhost:8000/"],
+    origin: ["https://intern-assignment-frontend-1m0dc94jj.vercel.app/"],
     methods : ["POST", "GET", "PUT", "DELETE"],
     credentials : true
 }));
