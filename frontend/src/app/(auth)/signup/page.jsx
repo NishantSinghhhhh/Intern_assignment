@@ -35,6 +35,10 @@ const SignUp = () => {
 
     try {
       const url = `https://intern-assignment-backend.vercel.app/auth/signUp`; 
+      
+      // Log URL to ensure it's correct
+      console.log('API URL:', url);
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -44,42 +48,62 @@ const SignUp = () => {
           name: formData.name,
           email: formData.email,
           password: formData.password
-        })
-      }).then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => console.log(data))
-      .catch(error => console.error('Error:', error));
+        }),
+        mode: 'cors' // Ensure CORS is enabled, avoid 'no-cors' to allow proper responses
+      });
+
+      // Log the response status to ensure the request went through
+      console.log('Response Status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
         const errorMessage = errorData.message || 'An error occurred';
+        
+        // Log error response for debugging
+        console.error('Error Response:', errorData);
         throw new Error(errorMessage);
       }
 
+      // Log response before converting to JSON
+      console.log('Raw Response:', response);
+
       const result = await response.json();
+
+      // Log the parsed result for inspection
+      console.log('Parsed Result:', result);
+
       const { success, message, error } = result;
 
       if (success) {
         alert(message);
+        console.log('Success:', message);
+
         setTimeout(() => {
           router.push('/'); 
         }, 1000);
       } else if (error) {
         const details = error?.details[0]?.message || 'An error occurred';
+        
+        // Log specific error details if present
+        console.error('Error Details:', details);
         setErrorMessage(details);
       } else {
         setErrorMessage(message || 'An unexpected error occurred.');
+        
+        // Log generic error message
+        console.error('Error Message:', message);
       }
     } catch (err) {
+      // Log the caught error
+      console.error('Caught Error:', err.message);
       setErrorMessage(err.message || 'An unexpected error occurred.');
     } finally {
+      // Log the loading state change
+      console.log('Setting loading to false');
       setLoading(false);
     }
-  };
+};
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
