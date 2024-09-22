@@ -39,7 +39,7 @@ const SignUp = () => {
       // Log URL to ensure it's correct
       console.log('API URL:', url);
 
-      const response = await fetch(url, {
+      const response = await fetch(url, {mode : 'no-cors'}, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
