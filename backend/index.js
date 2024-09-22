@@ -12,8 +12,9 @@ const PORT = process.env.PORT || 8080;
 require('./Models/db');
 
 app.use(cors({
-    origin: ["https://intern-assignment-trl3.vercel.app/"],
-    methods : ["POST", "GET", "PUT", "DELETE"],
+    origin: 'https://intern-assignment-trl3.vercel.app', // Allow only this origin
+    methods: 'GET,POST,PUT,DELETE,OPTIONS', // Add appropriate HTTP methods
+    allowedHeaders: 'Content-Type, Authorization', // Allow necessary headers
     credentials : true
 }))
 app.use(express.json());
