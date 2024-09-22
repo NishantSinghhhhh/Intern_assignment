@@ -19,7 +19,6 @@ app.use(cors());
 app.use(cors({
     origin: 'https://intern-assignment-trl3.vercel.app', // Allow only this origin
     methods: 'GET,POST,PUT,DELETE,OPTIONS', // Add appropriate HTTP methods
-    allowedHeaders: 'Content-Type, Authorization', // Allow necessary headers
     credentials : true
 }))
 
