@@ -16,6 +16,7 @@ app.use(cors({
   origin: 'https://intern-assignment-frontend.vercel.app',
   methods: ['GET', 'POST', 'OPTIONS'], // Add OPTIONS
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
