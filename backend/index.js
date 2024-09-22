@@ -15,6 +15,7 @@ require('./Models/db');
 app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
+app.options('*', cors()); // Preflight handling for all routes
 app.use(cors({
     origin: 'https://intern-assignment-trl3.vercel.app', // Allow only this origin
     methods: 'GET,POST,PUT,DELETE,OPTIONS', // Add appropriate HTTP methods
