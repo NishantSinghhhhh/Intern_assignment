@@ -11,10 +11,11 @@ const PORT = process.env.PORT || 8080;
 // Import the database connection
 require('./Models/db');
 
+const cors = require('cors');
+
 app.use(cors({
-    origin: ["https://intern-assignment-frontend.vercel.app/signup"],
-    methods : ["POST", "GET", "PUT", "DELETE"],
-    credentials : true
+  origin: 'https://intern-assignment-frontend.vercel.app',
+  methods: ['GET', 'POST'], // Adjust methods as needed
 }));
 
 app.use(express.json());
