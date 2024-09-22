@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 8080;
 require('./Models/db');
 
 app.use(cors({
-    origin: ["https://intern-assignment-frontend-1m0dc94jj.vercel.app/"],
+    origin: ["https://intern-assignment-frontend.vercel.app/signup"],
     methods : ["POST", "GET", "PUT", "DELETE"],
     credentials : true
 }));
