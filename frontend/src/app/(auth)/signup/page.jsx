@@ -49,7 +49,7 @@ const SignUp = () => {
           email: formData.email,
           password: formData.password
         }),
-        mode: 'no-cors' // Ensure CORS is enabled, avoid 'no-cors' to allow proper responses
+        mode: 'cors' // Ensure CORS is enabled, avoid 'no-cors' to allow proper responses
       });
 
       // Log the response status to ensure the request went through
