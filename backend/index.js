@@ -21,13 +21,6 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 
 
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
-});
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
