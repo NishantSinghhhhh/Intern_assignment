@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils"
 
 const ToastProvider = ToastPrimitives.Provider
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const actionTypes = {
+  SHOW: "SHOW",
+  HIDE: "HIDE",
+};
+
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
