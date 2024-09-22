@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080;
 
 // Import the database connection
 require('./Models/db');
-
+app.use(cors());
 app.use(cors({
     origin: 'https://intern-assignment-trl3.vercel.app', // Allow only this origin
     methods: 'GET,POST,PUT,DELETE,OPTIONS', // Add appropriate HTTP methods
@@ -19,7 +19,6 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use('/auth', authRoutes);
-
 
 
 app.listen(PORT, () => {
